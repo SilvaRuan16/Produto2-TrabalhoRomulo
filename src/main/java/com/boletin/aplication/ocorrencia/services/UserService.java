@@ -1,7 +1,7 @@
-package com.boletin.application.ocorrencia.services;
+package com.boletin.aplication.ocorrencia.services;
 
-import com.boletin.application.ocorrencia.interfaces.Crud;
-import com.boletin.application.ocorrencia.models.UserModel;
+import com.boletin.aplication.ocorrencia.interfaceMETHOD.Crud;
+import com.boletin.aplication.ocorrencia.models.UserModel;
 import com.boletin.aplication.ocorrencia.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -49,7 +49,6 @@ public class UserService implements Crud<UserModel> {
         return userRepository.findAll();
     }
 
-    // MÉTODO EXTRA (opcional, mas útil)
     public UserModel buscarPorId(Long id) {
         return userRepository.findById(id).orElse(null);
     }
