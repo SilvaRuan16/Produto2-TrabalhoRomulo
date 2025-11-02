@@ -48,4 +48,8 @@ public class BoletinService implements Crud<BoletinModel> {
     public List<BoletinModel> Read() { 
         return boletinRepository.findAll();
     }
+    
+    public BoletinModel buscarPorId(Long id) {
+        return boletinRepository.findById(id).orElse(null);
+    }
 }
