@@ -2,7 +2,7 @@ package com.boletin.application.ocorrencia.services;
 
 import com.boletin.application.ocorrencia.interfaces.Crud;
 import com.boletin.application.ocorrencia.models.UserModel;
-import com.boletin.application.ocorrencia.repository.UserRepository;
+import com.boletin.aplication.ocorrencia.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

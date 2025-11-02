@@ -1,12 +1,12 @@
 package com.boletin.aplication.ocorrencia.services;
 
 import com.boletin.aplication.ocorrencia.interfaceMETHOD.Crud;
-import com.boletin.application.ocorrencia.interfaces.Crud;
-import com.boletin.application.ocorrencia.models.BoletinModel;
-import com.boletin.application.ocorrencia.repository.BoletinRepository;
+import com.boletin.aplication.ocorrencia.models.BoletinModel;
+import com.boletin.aplication.ocorrencia.repository.BoletinRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class BoletinService implements Crud<BoletinModel> {
@@ -24,21 +24,28 @@ public class BoletinService implements Crud<BoletinModel> {
     }
 
     @Override
-    public void Update(Long id, UserModel userAtualizado) {
-        return userRepository.findById(id).map(userExistente -> {
-            userExistente.setUser(userAtualizado.getUser());
-            userExistente.setPassword(userAtualizado.getPassword());
-            return userRepository.save(userExistente);
-        }).orElse(null);
+    public void Update(Long id, BoletinModel boletinAtualizado) {
+        Optional<BoletinModel> boletimOptional = boletinRepository.findById(id);
+
+        if (boletimOptional.isPresent()) {
+
+            BoletinModel boletimExistente = boletimOptional.get();
+
+            boletimExistente.setTitle(boletinAtualizado.getTitle());
+            boletimExistente.setDescription(boletinAtualizado.getDescription());
+
+            boletinRepository.save(boletimExistente);
+
+        }
     }
 
     @Override
     public void Deletar(Long id) {
-        userRepository.deleteById(id);
+        boletinRepository.deleteById(id);
     }
 
     @Override
-    public void Read() {
-        return userRepository.findAll();
+    public List<BoletinModel> Read() { 
+        return boletinRepository.findAll();
     }
 }
