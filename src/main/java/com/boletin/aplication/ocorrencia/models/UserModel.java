@@ -9,8 +9,9 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.util.List;
+
 import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,7 +28,7 @@ public class UserModel {
    @Column(name = "username", nullable = false, length = 50, unique = true)
    private String userName;
 
-   @Column(name = "password", nullable = false, length = 50)
+   @Column(name = "password", nullable = false, length = 100)
    private String password;
 
    @OneToMany(mappedBy = "usuarioModel", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

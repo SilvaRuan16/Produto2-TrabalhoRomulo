@@ -46,7 +46,7 @@ public class BoletinService implements Crud<BoletinModel> {
 
     @Override
     public List<BoletinModel> Read() { 
-        return boletinRepository.findAll();
+        return boletinRepository.findAllWithUsuario();
     }
     
     public BoletinModel buscarPorId(Long id) {
