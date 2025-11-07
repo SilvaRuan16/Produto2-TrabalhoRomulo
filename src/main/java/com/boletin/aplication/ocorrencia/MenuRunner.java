@@ -82,7 +82,8 @@ public class MenuRunner implements CommandLineRunner {
             case 7 -> deleteUser();
             case 8 -> updateBoletin();
             case 9 -> deleteBoletin();
-            case 0 -> {}
+            case 0 -> {
+            }
             default -> System.out.println("Opção inválida!");
         }
     }
@@ -90,192 +91,249 @@ public class MenuRunner implements CommandLineRunner {
     // ====================== USUÁRIO ======================
 
     private void insertUser() {
-        System.out.print("Nome de usuário: ");
-        String userName = scan.nextLine();
-        if (userService.Read().stream().anyMatch(u -> u.getUserName().equals(userName))) {
-            System.out.println("Este usuário já existe!");
-            return;
-        }
-        System.out.print("Senha: ");
-        String password = scan.nextLine();
+        try {
+            System.out.print("Nome de usuário: ");
+            String userName = scan.nextLine();
+            if (userService.Read().stream().anyMatch(u -> u.getUserName().equals(userName))) {
+                System.out.println("Este usuário já existe!");
+                return;
+            }
+            System.out.print("Senha: ");
+            String password = scan.nextLine();
 
-        UserModel user = new UserModel();
-        user.setUserName(userName);
-        user.setPassword(password);
-        userService.Inserir(user);
-        System.out.println("Usuário registrado com sucesso!");
+            UserModel user = new UserModel();
+            user.setUserName(userName);
+            user.setPassword(password);
+            userService.Inserir(user);
+            System.out.println("Usuário registrado com sucesso!");
+        } catch (Exception e) {
+            System.out.println("Erro ao registrar usuário: " + e.getMessage());
+        }
     }
 
     private void loginUser() {
-        System.out.print("Usuário: ");
-        String userName = scan.nextLine();
-        System.out.print("Senha: ");
-        String password = scan.nextLine();
+        try {
+            System.out.print("Usuário: ");
+            String userName = scan.nextLine();
+            System.out.print("Senha: ");
+            String password = scan.nextLine();
 
-        loggedUser = userService.Read().stream()
-                .filter(u -> u.getUserName().equals(userName))
-                .findFirst()
-                .orElse(null);
+            loggedUser = userService.Read().stream()
+                    .filter(u -> u.getUserName().equals(userName))
+                    .findFirst()
+                    .orElse(null);
 
-        if (loggedUser != null && passwordEncoder.matches(password, loggedUser.getPassword())) {
-            System.out.println("Login bem-sucedido! Bem-vindo, " + userName + "!");
-        } else {
-            System.out.println("Usuário ou senha incorretos.");
-            loggedUser = null;
+            if (loggedUser != null && passwordEncoder.matches(password, loggedUser.getPassword())) {
+                System.out.println("Login bem-sucedido! Bem-vindo, " + userName + "!");
+            } else {
+                System.out.println("Usuário ou senha incorretos.");
+                loggedUser = null;
+            }
+        } catch (Exception e) {
+            System.out.println("Erro ao fazer login: " + e.getMessage());
         }
     }
 
     private void updateUser() {
-        if (loggedUser == null) {
-            System.out.println("Faça login primeiro!");
-            return;
+        try {
+            if (loggedUser == null) {
+                System.out.println("Faça login primeiro!");
+                return;
+            }
+            System.out.println("Atualizar dados do usuário: " + loggedUser.getUserName());
+            System.out.print("Novo nome de usuário (ou Enter para manter): ");
+            String newName = scan.nextLine();
+            System.out.print("Nova senha (ou Enter para manter): ");
+            String newPass = scan.nextLine();
+
+            UserModel updated = new UserModel();
+            updated.setUserName(newName.isBlank() ? loggedUser.getUserName() : newName);
+            updated.setPassword(newPass.isBlank() ? null : newPass);
+
+            userService.Update(loggedUser.getId(), updated);
+            if (!newName.isBlank())
+                loggedUser.setUserName(updated.getUserName());
+            System.out.println("Dados atualizados com sucesso!");
+        } catch (Exception e) {
+            System.out.println("Erro ao atualizar usuário: " + e.getMessage());
         }
-        System.out.println("Atualizar dados do usuário: " + loggedUser.getUserName());
-        System.out.print("Novo nome de usuário (ou Enter para manter): ");
-        String newName = scan.nextLine();
-        System.out.print("Nova senha (ou Enter para manter): ");
-        String newPass = scan.nextLine();
-
-        UserModel updated = new UserModel();
-        updated.setUserName(newName.isBlank() ? loggedUser.getUserName() : newName);
-        updated.setPassword(newPass.isBlank() ? null : newPass);
-
-        userService.Update(loggedUser.getId(), updated);
-        if (!newName.isBlank()) loggedUser.setUserName(updated.getUserName());
-        System.out.println("Dados atualizados com sucesso!");
     }
 
     private void deleteUser() {
-        if (loggedUser == null) {
-            System.out.println("Faça login primeiro!");
-            return;
+        try {
+            if (loggedUser == null) {
+                System.out.println("Faça login primeiro!");
+                return;
+            }
+            System.out.print("Tem certeza que deseja EXCLUIR sua conta? (s/N): ");
+            if (!scan.nextLine().equalsIgnoreCase("s")) {
+                System.out.println("Exclusão cancelada.");
+                return;
+            }
+            getBoletinOfUser().forEach(b -> boletinService.Deletar(b.getId()));
+            userService.Deletar(loggedUser.getId());
+            System.out.println("Conta e boletins excluídos com sucesso.");
+            loggedUser = null;
+        } catch (Exception e) {
+            System.out.println("Erro ao excluir usuário: " + e.getMessage());
         }
-        System.out.print("Tem certeza que deseja EXCLUIR sua conta? (s/N): ");
-        if (!scan.nextLine().equalsIgnoreCase("s")) {
-            System.out.println("Exclusão cancelada.");
-            return;
-        }
-        getBoletinOfUser().forEach(b -> boletinService.Deletar(b.getId()));
-        userService.Deletar(loggedUser.getId());
-        System.out.println("Conta e boletins excluídos com sucesso.");
-        loggedUser = null;
     }
 
     // ====================== BOLETIM ======================
 
     private void insertBoletin() {
-        if (loggedUser == null) {
-            System.out.println("Faça login primeiro!");
-            return;
+        try {
+            if (loggedUser == null) {
+                System.out.println("Faça login primeiro!");
+                return;
+            }
+            System.out.print("Título: ");
+            String title = scan.nextLine();
+            System.out.print("Descrição: ");
+            String description = scan.nextLine();
+
+            BoletinModel boletin = new BoletinModel();
+            boletin.setTitle(title);
+            boletin.setDescription(description);
+            boletin.setDateRegistry(LocalDateTime.now());
+            boletin.setUsuarioModel(loggedUser);
+
+            boletinService.Inserir(boletin);
+            System.out.println("Boletim registrado com sucesso!");
+        } catch (Exception e) {
+            System.out.println("Erro ao registrar boletim: " + e.getMessage());
         }
-        System.out.print("Título: ");
-        String title = scan.nextLine();
-        System.out.print("Descrição: ");
-        String description = scan.nextLine();
-
-        BoletinModel boletin = new BoletinModel();
-        boletin.setTitle(title);
-        boletin.setDescription(description);
-        boletin.setDateRegistry(LocalDateTime.now());
-        boletin.setUsuarioModel(loggedUser);
-
-        boletinService.Inserir(boletin);
-        System.out.println("Boletim registrado com sucesso!");
     }
 
     private void readUserBoletin() {
-        if (loggedUser == null) {
-            System.out.println("Faça login primeiro!");
-            return;
+        try {
+            if (loggedUser == null) {
+                System.out.println("Faça login primeiro!");
+                return;
+            }
+            List<BoletinModel> meus = getBoletinOfUser();
+            if (meus.isEmpty()) {
+                System.out.println("Você não tem boletins registrados.");
+                return;
+            }
+            System.out.println("\nSeus Boletins:");
+            meus.forEach(b -> System.out.printf(
+                    "==============================%n" +
+                            "Título: %s%n" +
+                            "Descrição: %s%n" +
+                            "Data: %s%n" +
+                            "==============================%n%n",
+                    b.getTitle(),
+                    b.getDescription(),
+                    b.getDateRegistry().format(dtf)));
+        } catch (Exception e) {
+            System.out.println("Erro ao listar seus boletins: " + e.getMessage());
         }
-        List<BoletinModel> meus = getBoletinOfUser();
-        if (meus.isEmpty()) {
-            System.out.println("Você não tem boletins registrados.");
-            return;
-        }
-        System.out.println("\nSeus Boletins:");
-        meus.forEach(b -> System.out.printf("• %s | %s | %s%n",
-                b.getTitle(), b.getDescription(), b.getDateRegistry().format(dtf)));
     }
 
     private void readAllBoletins() {
-        List<BoletinModel> todos = boletinService.Read();
-        if (todos.isEmpty()) {
-            System.out.println("Nenhum boletim registrado.");
-            return;
+        try {
+            List<BoletinModel> todos = boletinService.Read();
+            if (todos.isEmpty()) {
+                System.out.println("Nenhum boletim registrado.");
+                return;
+            }
+            System.out.println("\nTodos os Boletins:");
+            todos.forEach(b -> System.out.printf(
+                    "==============================%n" +
+                            "Usuário: %s%n" +
+                            "Título: %s%n" +
+                            "Descrição: %s%n" +
+                            "Data: %s%n" +
+                            "==============================%n%n",
+                    b.getUsuarioModel().getUserName(),
+                    b.getTitle(),
+                    b.getDescription(),
+                    b.getDateRegistry().format(dtf)));
+        } catch (Exception e) {
+            System.out.println("Erro ao listar boletins: " + e.getMessage());
         }
-        System.out.println("\nTodos os Boletins:");
-        todos.forEach(b -> System.out.printf("• [%s] %s | %s | %s%n",
-                b.getUsuarioModel().getUserName(),
-                b.getTitle(), b.getDescription(), b.getDateRegistry().format(dtf)));
     }
 
     private void updateBoletin() {
-        if (loggedUser == null) {
-            System.out.println("Faça login primeiro!");
-            return;
-        }
-        List<BoletinModel> meus = getBoletinOfUser();
-        if (meus.isEmpty()) {
-            System.out.println("Você não tem boletins para atualizar.");
-            return;
-        }
-        System.out.println("Seus boletins:");
-        for (int i = 0; i < meus.size(); i++) {
-            System.out.printf("%d. %s%n", i + 1, meus.get(i).getTitle());
-        }
-        System.out.print("Número do boletim: ");
-        int index = readOption() - 1;
-        if (index < 0 || index >= meus.size()) {
-            System.out.println("Número inválido.");
-            return;
-        }
-        BoletinModel b = meus.get(index);
-        System.out.print("Novo título (Enter para manter): ");
-        String t = scan.nextLine();
-        System.out.print("Nova descrição (Enter para manter): ");
-        String d = scan.nextLine();
+        try {
+            if (loggedUser == null) {
+                System.out.println("Faça login primeiro!");
+                return;
+            }
+            List<BoletinModel> meus = getBoletinOfUser();
+            if (meus.isEmpty()) {
+                System.out.println("Você não tem boletins para atualizar.");
+                return;
+            }
+            System.out.println("Seus boletins:");
+            for (int i = 0; i < meus.size(); i++) {
+                System.out.printf("%d. %s%n", i + 1, meus.get(i).getTitle());
+            }
+            System.out.print("Número do boletim: ");
+            int index = readOption() - 1;
+            if (index < 0 || index >= meus.size()) {
+                System.out.println("Número inválido.");
+                return;
+            }
+            BoletinModel b = meus.get(index);
+            System.out.print("Novo título (Enter para manter): ");
+            String t = scan.nextLine();
+            System.out.print("Nova descrição (Enter para manter): ");
+            String d = scan.nextLine();
 
-        BoletinModel atualizado = new BoletinModel();
-        atualizado.setTitle(t.isBlank() ? b.getTitle() : t);
-        atualizado.setDescription(d.isBlank() ? b.getDescription() : d);
+            BoletinModel atualizado = new BoletinModel();
+            atualizado.setTitle(t.isBlank() ? b.getTitle() : t);
+            atualizado.setDescription(d.isBlank() ? b.getDescription() : d);
 
-        boletinService.Update(b.getId(), atualizado);
-        System.out.println("Boletim atualizado!");
+            boletinService.Update(b.getId(), atualizado);
+            System.out.println("Boletim atualizado!");
+        } catch (Exception e) {
+            System.out.println("Erro ao atualizar boletim: " + e.getMessage());
+        }
     }
 
     private void deleteBoletin() {
-        if (loggedUser == null) {
-            System.out.println("Faça login primeiro!");
-            return;
-        }
-        List<BoletinModel> meus = getBoletinOfUser();
-        if (meus.isEmpty()) {
-            System.out.println("Você não tem boletins para excluir.");
-            return;
-        }
-        System.out.println("Seus boletins:");
-        for (int i = 0; i < meus.size(); i++) {
-            System.out.printf("%d. %s%n", i + 1, meus.get(i).getTitle());
-        }
-        System.out.print("Número do boletim para EXCLUIR: ");
-        int index = readOption() - 1;
-        if (index < 0 || index >= meus.size()) {
-            System.out.println("Número inválido.");
-            return;
-        }
-        System.out.print("Confirma? (s/N): ");
-        if (scan.nextLine().equalsIgnoreCase("s")) {
-            boletinService.Deletar(meus.get(index).getId());
-            System.out.println("Boletim excluído!");
-        } else {
-            System.out.println("Exclusão cancelada.");
+        try {
+            if (loggedUser == null) {
+                System.out.println("Faça login primeiro!");
+                return;
+            }
+            List<BoletinModel> meus = getBoletinOfUser();
+            if (meus.isEmpty()) {
+                System.out.println("Você não tem boletins para excluir.");
+                return;
+            }
+            System.out.println("Seus boletins:");
+            for (int i = 0; i < meus.size(); i++) {
+                System.out.printf("%d. %s%n", i + 1, meus.get(i).getTitle());
+            }
+            System.out.print("Número do boletim para EXCLUIR: ");
+            int index = readOption() - 1;
+            if (index < 0 || index >= meus.size()) {
+                System.out.println("Número inválido.");
+                return;
+            }
+            System.out.print("Confirma? (s/N): ");
+            if (scan.nextLine().equalsIgnoreCase("s")) {
+                boletinService.Deletar(meus.get(index).getId());
+                System.out.println("Boletim excluído!");
+            } else {
+                System.out.println("Exclusão cancelada.");
+            }
+        } catch (Exception e) {
+            System.out.println("Erro ao excluir boletim: " + e.getMessage());
         }
     }
 
     private List<BoletinModel> getBoletinOfUser() {
-        return boletinService.Read().stream()
-                .filter(b -> b.getUsuarioModel() != null && b.getUsuarioModel().getId().equals(loggedUser.getId()))
-                .toList();
+        try {
+            return boletinService.Read().stream()
+                    .filter(b -> b.getUsuarioModel() != null && b.getUsuarioModel().getId().equals(loggedUser.getId()))
+                    .toList();
+        } catch (Exception e) {
+            System.out.println("Erro ao buscar boletins do usuário: " + e.getMessage());
+            return List.of();
+        }
     }
 }
